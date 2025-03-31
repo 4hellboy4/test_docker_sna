@@ -1,0 +1,35 @@
+stages:
+  - build
+  - test
+  - deploy
+
+build:
+  stage: build
+  image: docker:latest
+  services:
+    - docker:dind
+  script:
+    - docker build -t myapp .
+  only:
+    - main
+
+test:
+  stage: test
+  image: docker:latest
+  services:
+    - docker:dind
+  script:
+    - docker build -t myapp .
+    - docker run myapp python -c "print('Test passed!')"
+  only:
+    - main
+
+deploy:
+  stage: deploy
+  script:
+    - echo "Deploying the application..."
+    - docker login -u "$DOCKER_USERNAME" -p "$DOCKER_PASSWORD"
+    - docker tag myapp mydockerhubuser/myapp:latest
+    - docker push mydockerhubuser/myapp:latest
+  only:
+    - main
