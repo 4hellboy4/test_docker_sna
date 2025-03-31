@@ -3,13 +3,19 @@ stages:
   - test
   - deploy
 
+variables:
+  IMAGE_NAME: "4hellboy4/docker_example"
+
+before_script:
+  - docker login -u "$DOCKER_USERNAME" -p "$DOCKER_PASSWORD"
+
 build:
   stage: build
   image: docker:latest
   services:
     - docker:dind
   script:
-    - docker build -t myapp .
+    - docker build -t $IMAGE_NAME:latest .
   only:
     - main
 
@@ -19,17 +25,17 @@ test:
   services:
     - docker:dind
   script:
-    - docker build -t myapp .
-    - docker run myapp python -c "print('Test passed!')"
+    - docker run $IMAGE_NAME:latest python -c "print('Test passed!')"
   only:
     - main
 
 deploy:
   stage: deploy
+  image: docker:latest
+  services:
+    - docker:dind
   script:
-    - echo "Deploying the application..."
-    - docker login -u "$DOCKER_USERNAME" -p "$DOCKER_PASSWORD"
-    - docker tag myapp mydockerhubuser/myapp:latest
-    - docker push mydockerhubuser/myapp:latest
+    - docker tag $IMAGE_NAME:latest $IMAGE_NAME:latest
+    - docker push $IMAGE_NAME:latest
   only:
     - main
